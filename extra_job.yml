@@ -1,0 +1,9 @@
+# Copy this file into resources/ ONLY on the feature-x branch (Test 4)
+resources:
+  jobs:
+    extra_job:
+      name: extra_job
+      tasks:
+        - task_key: extra
+          notebook_task:
+            notebook_path: ../src/hello.py
