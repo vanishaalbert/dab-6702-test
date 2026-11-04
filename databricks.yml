@@ -1,0 +1,53 @@
+# Test bundle for databricks/cli issue #6702
+# (SP cannot destroy a development-mode bundle deployed by someone else)
+
+bundle:
+  name: dab_6702_test
+
+include:
+  - resources/*.yml
+
+variables:
+  dev_username:
+    description: Who "owns" this deployment. Defaults to whoever is logged in.
+    default: ${workspace.current_user.short_name}
+  branch_name:
+    description: Git branch the deployment belongs to.
+    default: ${bundle.git.branch}
+
+targets:
+
+  # ---------------------------------------------------------------
+  # TODAY'S SETUP: dev mode + shared folder (reproduces the bug)
+  # ---------------------------------------------------------------
+  local_dev:
+    mode: development
+    default: true
+    presets:
+      name_prefix: "zzz_${var.dev_username}__${var.branch_name}__"
+    workspace:
+      root_path: /Workspace/Shared/dab_6702_test/local_dev/${var.branch_name}/${var.dev_username}
+
+  # ---------------------------------------------------------------
+  # OPTION 1: no mode, dev behaviour rebuilt with presets
+  # ---------------------------------------------------------------
+  presets_dev:
+    presets:
+      name_prefix: "zzz_${var.dev_username}__${var.branch_name}__"
+      trigger_pause_status: PAUSED
+      pipelines_development: true
+      tags:
+        dev_user: ${var.dev_username}
+        branch: ${var.branch_name}
+    workspace:
+      sync_mode: in-place
+      root_path: /Workspace/Shared/dab_6702_test/presets_dev/${var.branch_name}/${var.dev_username}
+
+  # ---------------------------------------------------------------
+  # OPTION 2: cleanup-only target (NO mode) pointing at local_dev's folder
+  # !! Only ever run "bundle destroy" against this target. Never deploy it. !!
+  # ---------------------------------------------------------------
+  cleanup:
+    workspace:
+      # "local_dev" is hard-coded on purpose (not ${bundle.target})
+      root_path: /Workspace/Shared/dab_6702_test/local_dev/${var.branch_name}/${var.dev_username}
