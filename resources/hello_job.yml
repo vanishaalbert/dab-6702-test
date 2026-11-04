@@ -1,0 +1,12 @@
+resources:
+  jobs:
+    hello_job:
+      name: hello_job
+      schedule:
+        quartz_cron_expression: "0 0 2 * * ?"
+        timezone_id: UTC
+        pause_status: PAUSED   # safety: never actually runs on a schedule in e2-demo
+      tasks:
+        - task_key: hello
+          notebook_task:
+            notebook_path: ../src/hello.py
